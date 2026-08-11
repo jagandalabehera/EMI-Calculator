@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Loan EMI & Conversion Calculator</title>
+    
+    <!-- Libraries for PDF Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #1a1a1a;
+            --secondary: #4caf50;
+            --blue: #2196f3;
+            --bg-color: #007bb5; 
+            --card-bg: rgba(255, 255, 255, 0.88); 
+            --text-main: #222222;
+            --text-muted: #666666;
+            --border: rgba(200, 200, 200, 0.5);
+            --mx: 0;
+            --my: 0;
+        }
+
+        /* --- Interactive & Continuous Clear Lake Background --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 3rem 1rem;
+            position: relative;
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #00b4db 0%, #0083b0 100%);
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="2" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noise)" opacity="0.2"/></svg>');
+            z-index: -3;
+            pointer-events: none;
+            animation: waterDrift 30s linear infinite;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            top: -20%; left: -20%; width: 140%; height: 140%;
+            background-image: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.15) 0%, transparent 60%);
+            z-index: -2;
+            pointer-events: none;
+            transform: translate(calc(var(--mx) * -50px), calc(var(--my) * -50px));
+            transition: transform 0.2s ease-out;
+        }
+
+        @keyframes waterDrift {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-2%, -2%) rotate(1deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+        /* --- Moving Ocean Animals (Safely BEHIND the calculator) --- */
+        .ocean-creatures {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1; 
+            pointer-events: none; 
+            overflow: hidden;
+        }
+        
+        .creature {
+            position: absolute;
+            font-size: 2.5rem;
+            opacity: 0.75;
+            filter: drop-shadow(0px 8px 10px rgba(0,0,0,0.4));
+        }
+
+        @keyframes swimRight {
+            0% { transform: translateX(-10vw) translateY(0) scaleX(-1); }
+            50% { transform: translateX(50vw) translateY(30px) scaleX(-1); }
+            100% { transform: translateX(110vw) translateY(-10px) scaleX(-1); }
+        }
+        @keyframes swimLeft {
+            0% { transform: translateX(110vw) translateY(0); }
+            50% { transform: translateX(50vw) translateY(-40px); }
+            100% { transform: translateX(-10vw) translateY(20px); }
+        }
+        @keyframes crawlLeft {
+            0% { transform: translateX(110vw) rotate(0deg); }
+            25% { transform: translateX(75vw) translateY(-10px) rotate(-10deg); }
+            50% { transform: translateX(50vw) translateY(0px) rotate(0deg); }
+            75% { transform: translateX(25vw) translateY(-10px) rotate(-10deg); }
+            100% { transform: translateX(-10vw) rotate(0deg); }
+        }
+
+        .c1 { top: 18%; animation: swimRight 25s linear infinite; font-size: 3.5rem; }
+        .c2 { top: 40%; animation: swimLeft 30s linear infinite 3s; font-size: 2.8rem; }
+        .c3 { top: 65%; animation: swimRight 40s linear infinite 5s; font-size: 2.2rem; }
+        .c4 { bottom: 8%; animation: crawlLeft 45s linear infinite; font-size: 3rem; }
+        .c5 { top: 80%; animation: swimLeft 35s linear infinite 12s; font-size: 4rem; opacity: 0.6; }
+
+        /* --- Main Pro Glassmorphism Container --- */
+        .calculator-container {
+            background-color: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+            width: 100%;
+            max-width: 800px;
+            position: relative;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            z-index: 10;
+        }
+
+        /* --- High Wave Overlays --- */
+        .high-wave-overlay {
+            position: fixed;
+            left: 0;
+            width: 200%;
+            height: 45vh;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(0, 180, 219, 0.35)" d="M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,170.7C960,160,1056,192,1152,208C1248,224,1344,224,1392,224L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') repeat-x;
+            background-size: 50% 100%;
+            z-index: 20; 
+            pointer-events: none; 
+            animation: waveFlow 14s linear infinite, waveCrash 8s ease-in-out infinite alternate;
+        }
+
+        .high-wave-overlay-2 {
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255, 255, 255, 0.25)" d="M0,256L48,245.3C96,235,192,213,288,213.3C384,213,480,235,576,234.7C672,235,768,213,864,186.7C960,160,1056,128,1152,133.3C1248,139,1344,181,1392,202.7L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') repeat-x;
+            background-size: 50% 100%;
+            animation: waveFlow 10s linear infinite reverse, waveCrash 6s ease-in-out infinite alternate-reverse;
+        }
+
+        @keyframes waveFlow {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        @keyframes waveCrash {
+            0% { bottom: -25vh; }
+            100% { bottom: 5vh; } 
+        }
+
+        /* --- Typewriter Effects --- */
+        h2 {
+            margin-top: 0;
+            text-align: center;
+            color: var(--text-main);
+            margin-bottom: 2rem;
+            font-weight: 700;
+            min-height: 35px;
+            letter-spacing: -0.5px;
+        }
+
+        .char {
+            display: inline-block;
+            transition: color 0.3s, text-shadow 0.3s;
+        }
+
+        .char.sparkle {
+            animation: typeSweep 0.6s ease-in-out;
+        }
+
+        @keyframes typeSweep {
+            0% { color: var(--text-main); text-shadow: none; transform: translateY(0) scale(1); }
+            50% { 
+                color: #ffb703; 
+                text-shadow: 0 0 15px #ffb703, 0 0 30px #fb8500; 
+                transform: translateY(-5px) scale(1.15); 
+            }
+            100% { color: var(--text-main); text-shadow: none; transform: translateY(0) scale(1); }
+        }
+
+        /* --- Input Styling --- */
+        .input-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .full-width-input { grid-column: 1 / -1; }
+        @media (max-width: 600px) { .input-section { grid-template-columns: 1fr; gap: 1rem; } }
+        .input-group { margin-bottom: 1rem; }
+
+        label {
+            display: block;
+            margin-bottom: 0.3rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        input[type="number"], input[type="date"], select {
+            width: 100%;
+            padding: 0.6rem 0;
+            border: none;
+            border-bottom: 2px solid var(--border);
+            font-size: 1.3rem;
+            color: var(--blue);
+            box-sizing: border-box;
+            background: transparent;
+            font-family: inherit;
+            font-weight: 600;
+            transition: border-bottom-color 0.3s;
+        }
+
+        select { color: var(--text-main); cursor: pointer; }
+        input:focus, select:focus { outline: none; border-bottom-color: var(--blue); }
+
+        .radio-group {
+            display: flex;
+            gap: 1.2rem;
+            margin-top: 0.5rem;
+            align-items: center;
+        }
+        .radio-group input[type="radio"], .radio-group input[type="checkbox"] { 
+            accent-color: var(--secondary); 
+            width: 1.2rem; height: 1.2rem; cursor: pointer; 
+        }
+        .radio-group label { margin: 0; font-size: 1rem; color: var(--text-main); cursor: pointer; }
+
+        /* --- Advance Charges Toggle Block --- */
+        .advance-charges-block {
+            background: rgba(241, 245, 249, 0.7);
+            border: 1px solid rgba(200, 200, 200, 0.6);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            display: none;
+            backdrop-filter: blur(5px);
+        }
+        .advance-charges-block h4 {
+            margin-top: 0; margin-bottom: 1.5rem;
+            color: var(--text-main); font-size: 1.05rem;
+            border-bottom: 2px solid var(--border); padding-bottom: 0.5rem;
+        }
+        .inline-combo {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .inline-combo select { width: 40%; }
+        .inline-combo input { width: 60%; }
+
+        button.main-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+            color: white;
+            border: none;
+            padding: 1.2rem;
+            font-size: 1.15rem;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 15px rgba(33, 150, 243, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 30;
+        }
+        button.main-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 20px rgba(33, 150, 243, 0.5);
+        }
+
+        /* --- Results Layout --- */
+        .results {
+            display: none;
+            border-top: 1px solid var(--border);
+            padding-top: 2rem;
+        }
+        .result-card {
+            margin-bottom: 3rem;
+            max-width: 650px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .result-card h3 {
+            text-align: center;
+            font-size: 1.1rem;
+            color: var(--text-main);
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .data-table {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.6);
+        }
+        .data-row {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+        }
+        .data-row:last-child { border-bottom: none; }
+        .data-cell {
+            padding: 1.2rem;
+            flex: 1;
+        }
+        .data-cell:first-child { border-right: 1px solid var(--border); }
+        .data-label {
+            font-size: 0.9rem;
+            color: var(--secondary);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        .data-value {
+            font-size: 1.3rem;
+            color: var(--text-main);
+            font-weight: 700;
+        }
+        .data-value.highlight {
+            color: #d32f2f;
+        }
+        .data-value.success {
+            color: #2e7d32;
+        }
+        .sub-value {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+            font-weight: 500;
+        }
+        .full-width-cell { border-right: none !important; flex: 100%; }
+
+        /* --- Schedule Section --- */
+        .schedule-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            border-top: 1px dashed var(--border);
+            padding-top: 2rem;
+        }
+        .schedule-header h3 { margin: 0; color: var(--text-main); font-weight: 700; font-size: 1.1rem;}
+        
+        .schedule-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .loan-id-input {
+            width: 150px;
+            padding: 0.4rem 0.5rem;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            border: none;
+            border-bottom: 2px solid var(--secondary);
+            background: transparent;
+            font-weight: 600;
+            transition: border-bottom-color 0.3s;
+        }
+        .loan-id-input:focus { outline: none; border-bottom-color: var(--blue); }
+
+        .schedule-controls select {
+            width: auto;
+            padding: 0.3rem 0.5rem;
+            font-size: 1rem;
+            color: var(--secondary);
+            border-bottom: 2px solid var(--secondary);
+            font-weight: 700;
+        }
+
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            background: rgba(255,255,255,0.7);
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+        th, td {
+            padding: 1rem;
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+        }
+        th {
+            background-color: rgba(241, 245, 249, 0.9);
+            color: var(--text-main);
+            position: sticky;
+            top: 0;
+            font-weight: 700;
+            backdrop-filter: blur(5px);
+        }
+        th:first-child, td:first-child { text-align: left; }
+
+        .btn-group { display: flex; gap: 0.75rem; position: relative; z-index: 30; flex-wrap: wrap;}
+        .btn-group button {
+            flex: 1;
+            min-width: 150px;
+            background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+            color: white;
+            border: none;
+            padding: 1rem 0.5rem;
+            font-size: 0.95rem;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+        }
+        .btn-group button.btn-blue {
+            background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+            box-shadow: 0 4px 10px rgba(33, 150, 243, 0.3);
+        }
+        .btn-group button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+        }
+
+        /* --- Continuous Sparkle Footer Design --- */
+        .app-footer {
+            margin-top: 3.5rem;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            padding-top: 2rem;
+            position: relative;
+            z-index: 30;
+        }
+
+        .continuous-sparkle-text {
+            font-size: 1.15rem;
+            font-weight: 800;
+            display: inline-block;
+            background: linear-gradient(90deg, #ff9900, #ffdf00, #fffaaa, #ffdf00, #ff9900);
+            background-size: 200% auto;
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: shineContinuous 2.5s linear infinite, glowPulse 2s ease-in-out infinite;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.5px;
+        }
+
+        .continuous-star {
+            display: inline-block;
+            font-size: 1.3rem;
+            margin-left: 5px;
+            color: #ffdf00;
+            text-shadow: 0 0 10px #ffdf00;
+            animation: spinGlowStar 2s linear infinite;
+        }
+
+        @keyframes shineContinuous { to { background-position: 200% center; } }
+        @keyframes glowPulse {
+            0%, 100% { filter: drop-shadow(0 0 2px rgba(255, 223, 0, 0.5)); }
+            50% { filter: drop-shadow(0 0 8px rgba(255, 223, 0, 0.9)); }
+        }
+        @keyframes spinGlowStar {
+            0% { transform: scale(1) rotate(0deg); opacity: 0.8; }
+            50% { transform: scale(1.3) rotate(180deg); opacity: 1; text-shadow: 0 0 20px #ffdf00; }
+            100% { transform: scale(1) rotate(360deg); opacity: 0.8; }
+        }
+
+        .feedback-help-link {
+            display: block;
+            margin-top: 0.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--blue);
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .feedback-help-link:hover {
+            color: #0d47a1;
+            text-decoration: underline;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 1.2rem;
+            align-items: center;
+        }
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .footer-links a:hover { color: var(--primary); }
+        .footer-divider { color: #ccc; }
+
+        /* --- Modals (Popups) --- */
+        .modal {
+            display: none; position: fixed; z-index: 1000; 
+            left: 0; top: 0; width: 100%; height: 100%; 
+            background-color: rgba(0,0,0,0.7); backdrop-filter: blur(6px);
+        }
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto; padding: 3rem;
+            border-radius: 16px; width: 90%; max-width: 550px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            position: relative; line-height: 1.6;
+        }
+        .modal-content h3 {
+            margin-top: 0; color: var(--primary);
+            border-bottom: 3px solid var(--blue); padding-bottom: 0.5rem; display: inline-block;
+        }
+        .close-btn {
+            color: #aaa; position: absolute;
+            top: 20px; right: 25px; font-size: 32px;
+            font-weight: bold; cursor: pointer; transition: color 0.2s;
+        }
+        .close-btn:hover { color: #333; }
+    </style>
+</head>
+<body>
+
+<!-- High Wave Water Spreads (Rises over the UI) -->
+<div class="high-wave-overlay"></div>
+<div class="high-wave-overlay high-wave-overlay-2"></div>
+
+<!-- Lake Background Animals (Behind everything) -->
+<div class="ocean-creatures">
+    <div class="creature c1">🐟</div>
+    <div class="creature c2">🐢</div>
+    <div class="creature c3">🐠</div>
+    <div class="creature c4">🦀</div>
+    <div class="creature c5">🐡</div>
+</div>
+
+<div class="calculator-container">
+    <!-- Typewriter Title Container -->
+    <h2 id="typewriter-title"></h2>
+    
+    <div class="input-section">
+        <div>
+            <div class="input-group">
+                <label>Loan Amount</label>
+                <input type="number" id="loanAmount" placeholder="100000" value="100000">
+                <label style="margin-top:0.3rem; font-size:0.75rem; font-weight:500;">The Loan Principal Amount</label>
+            </div>
+            <div class="input-group">
+                <label>Loan Tenure</label>
+                <input type="number" id="loanTenure" placeholder="36" value="36">
+                <div class="radio-group">
+                    <input type="radio" id="tenureYears" name="tenureType" value="years">
+                    <label for="tenureYears">Years</label>
+                    <input type="radio" id="tenureMonths" name="tenureType" value="months" checked>
+                    <label for="tenureMonths">Months</label>
+                </div>
+                <label style="margin-top:0.3rem; font-size:0.75rem; font-weight:500;">Repayment Period</label>
+            </div>
+        </div>
+
+        <div>
+            <div class="input-group">
+                <label>Calculation Method</label>
+                <select id="calcMethod">
+                    <option value="reducing">Reducing Balance Rate</option>
+                    <option value="flat">Flat Interest Rate</option>
+                </select>
+                <label style="margin-top:0.3rem; font-size:0.75rem; font-weight:500;">Select your interest type</label>
+            </div>
+            <div class="input-group">
+                <label>Interest Rate (%)</label>
+                <input type="number" id="interestRate" step="0.01" placeholder="12" value="12">
+                <label style="margin-top:0.3rem; font-size:0.75rem; font-weight:500;">Annual or Yearly Rate</label>
+            </div>
+        </div>
+
+        <div class="input-group full-width-input" style="margin-bottom: 0.5rem;">
+            <label>Loan Start Date</label>
+            <input type="date" id="startDate">
+            <label style="margin-top:0.3rem; font-size:0.75rem; font-weight:500;">Select the exact starting date (Day, Month, Year)</label>
+        </div>
+
+        <!-- Optional GAP Interest Option -->
+        <div class="input-group full-width-input" style="margin-bottom: 0.5rem; margin-top: 0.5rem;">
+            <div class="radio-group">
+                <input type="checkbox" id="hasGapInterest" onchange="document.getElementById('gapDaysGroup').style.display = this.checked ? 'block' : 'none'">
+                <label for="hasGapInterest" style="font-weight: 700; color: var(--blue);">Include GAP Interest (Pre-EMI)</label>
+            </div>
+        </div>
+        <div class="input-group full-width-input" id="gapDaysGroup" style="display: none; margin-top: 0;">
+            <label>Gap Period (in Days)</label>
+            <input type="number" id="gapDays" placeholder="e.g. 15" value="">
+            <label style="margin-top:0.3rem; font-size:0.75rem; font-weight:500;">Number of days between loan disbursement and EMI start date</label>
+        </div>
+
+        <!-- Optional Advance Charges Option -->
+        <div class="input-group full-width-input" style="margin-bottom: 0.5rem; margin-top: 0.5rem;">
+            <div class="radio-group">
+                <input type="checkbox" id="hasAdvanceCharges" onchange="document.getElementById('advanceChargesGroup').style.display = this.checked ? 'block' : 'none'">
+                <label for="hasAdvanceCharges" style="font-weight: 700; color: #d32f2f;">Include Advance Charges & Processing Fees</label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Advance Charges Block -->
+    <div class="advance-charges-block" id="advanceChargesGroup">
+        <h4>Calculate Advance Deductions</h4>
+        <div class="input-section" style="margin-bottom: 0;">
+            <div class="input-group">
+                <label>Processing Fee (%)</label>
+                <input type="number" id="pfPercent" step="0.01" placeholder="e.g. 2">
+                <label style="font-size:0.75rem;">Calculates with + 18% GST automatically</label>
+            </div>
+            <div class="input-group">
+                <label>Doc Charges (%)</label>
+                <input type="number" id="docPercent" step="0.01" placeholder="e.g. 0.5">
+                <label style="font-size:0.75rem;">Calculates with + 18% GST automatically</label>
+            </div>
+            <div class="input-group">
+                <label>Stamp Duty</label>
+                <div class="inline-combo">
+                    <select id="stampDutyType">
+                        <option value="amount">Manual (₹)</option>
+                        <option value="percent">% of Loan</option>
+                    </select>
+                    <input type="number" id="stampDutyVal" step="0.01" placeholder="Value">
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Priority Credit Fee (%)</label>
+                <input type="number" id="pcfPercent" step="0.01" placeholder="e.g. 1">
+                <label style="font-size:0.75rem;">Calculates with + 18% GST automatically</label>
+            </div>
+            <div class="input-group">
+                <label>Credit Health Report (CHR) (₹)</label>
+                <input type="number" id="chrAmt" placeholder="Amount">
+            </div>
+            <div class="input-group">
+                <label>Health & Wellness (H&W) (₹)</label>
+                <input type="number" id="hwAmt" placeholder="Amount">
+            </div>
+            <div class="input-group">
+                <label>H&W Bundle (₹)</label>
+                <input type="number" id="hwBundleAmt" placeholder="Amount">
+            </div>
+            <div class="input-group">
+                <label>Merchant Insurance (₹)</label>
+                <input type="number" id="merchInsAmt" placeholder="Amount">
+            </div>
+            <div class="input-group">
+                <label>NACH Charges (₹)</label>
+                <input type="number" id="nachAmt" placeholder="Amount">
+            </div>
+            <div class="input-group">
+                <label>Insurance Premium (₹)</label>
+                <input type="number" id="insAmt" placeholder="Amount">
+            </div>
+            <div class="input-group full-width-input">
+                <label>Foreclosure Charges</label>
+                <div class="inline-combo">
+                    <select id="closerApplicable" style="width: 100%;">
+                        <option value="no">Not Applicable</option>
+                        <option value="yes">Applicable</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="main-btn" onclick="calculateLoan()">Calculate & Compare</button>
+
+    <div class="results" id="results">
+        <div class="result-card">
+            <h3 id="comparison-title">CONVERSION RESULT</h3>
+            <div class="data-table">
+                <div class="data-row">
+                    <div class="data-cell">
+                        <div class="data-label" id="label-input">Input Rate</div>
+                        <div class="data-value" id="val-input-annual">0%</div>
+                        <div class="sub-value" id="val-input-monthly">0% / month</div>
+                    </div>
+                    <div class="data-cell">
+                        <div class="data-label" id="label-converted">Converted Rate</div>
+                        <div class="data-value" id="val-converted-annual">0%</div>
+                        <div class="sub-value" id="val-converted-monthly">0% / month</div>
+                    </div>
+                </div>
+                <div class="data-row">
+                    <div class="data-cell full-width-cell">
+                        <div class="data-label">Monthly EMI</div>
+                        <div class="data-value" id="val-emi">₹0</div>
+                    </div>
+                </div>
+                <!-- Gap Interest Display on UI only -->
+                <div class="data-row" id="gap-interest-row" style="display: none;">
+                    <div class="data-cell full-width-cell">
+                        <div class="data-label">Applicable Gap Interest (Pre-EMI)</div>
+                        <div class="data-value" id="val-gap-interest">₹0</div>
+                    </div>
+                </div>
+
+                <div class="data-row">
+                    <div class="data-cell full-width-cell">
+                        <div class="data-label">Total Interest Paid (Including Gap if any)</div>
+                        <div class="data-value" id="val-interest">₹0</div>
+                    </div>
+                </div>
+
+                <!-- Advance Charges Rows (Hidden unless calculated) -->
+                <div class="data-row" id="row-foreclosure" style="display: none; background: #fffdf0;">
+                    <div class="data-cell full-width-cell">
+                        <div class="data-label">Foreclosure Charges</div>
+                        <div class="data-value" id="val-foreclosure" style="font-size: 1.1rem;">Not Applicable</div>
+                    </div>
+                </div>
+                <div class="data-row" id="row-total-charges" style="display: none; background: #fff8f8;">
+                    <div class="data-cell full-width-cell">
+                        <div class="data-label" style="color: #d32f2f;">Total Upfront Deductions & Charges</div>
+                        <div class="data-value highlight" id="val-total-charges">₹0</div>
+                        <div class="sub-value" id="charges-subtext">Includes Processing Fees, Insurance, Stamp Duty, etc.</div>
+                    </div>
+                </div>
+                <div class="data-row" id="row-net-disbursement" style="display: none; background: #f0fdf4;">
+                    <div class="data-cell full-width-cell">
+                        <div class="data-label" style="color: #2e7d32;">Net Disbursement Amount</div>
+                        <div class="data-value success" id="val-net-disbursement">₹0</div>
+                        <div class="sub-value">Amount actually credited to your bank account</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dynamic Schedule Section with Loan ID -->
+        <div class="schedule-header">
+            <h3>Amortization Schedule</h3>
+            <div class="schedule-controls">
+                <input type="text" id="loanIdInput" class="loan-id-input" placeholder="Loan ID (Optional)">
+                <select id="scheduleView" onchange="renderTable()">
+                    <option value="yearly">Year-Wise</option>
+                    <option value="monthly">Month-Wise</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="table-container">
+            <table id="scheduleTable">
+                <thead>
+                    <tr>
+                        <!-- Headers injected dynamically -->
+                    </tr>
+                </thead>
+                <tbody id="scheduleBody">
+                    <!-- Rows generated via JS -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn-blue" onclick="exportDisbursementPDF()">Download Disbursement (PDF)</button>
+            <button onclick="exportPDF()">Download Schedule (PDF)</button>
+            <button onclick="exportExcel()">Download Schedule (CSV)</button>
+        </div>
+    </div>
+
+    <!-- Custom Pro Footer -->
+    <div class="app-footer">
+        <div>
+            <span class="continuous-sparkle-text">This Calculator module was designed by Jagan</span>
+            <span class="continuous-star">✨</span>
+        </div>
+        
+        <a class="feedback-help-link" href="mailto:jagandalabehera8@gmail.com?subject=Feedback regarding EMI Calculator Module">
+            For feedback, tap on Help
+        </a>
+        
+        <div class="footer-links">
+            <a onclick="openModal('aboutModal')">About</a>
+            <span class="footer-divider">|</span>
+            <a onclick="openModal('tncModal')">T&C</a>
+            <span class="footer-divider">|</span>
+            <a href="mailto:jagandalabehera8@gmail.com?subject=Feedback regarding EMI Calculator Module">Help</a>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<div id="aboutModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal('aboutModal')">&times;</span>
+        <h3>About This Module</h3>
+        <p>This advanced Financial Calculator was exclusively built to simplify complex loan structures.</p>
+        <p>It provides instantaneous conversions between Flat Rates and Reducing Balance methods, giving users transparent, side-by-side financial comparisons alongside detailed year-wise and month-wise amortization schedules.</p>
+        <p>Designed and maintained by <strong>Jagan</strong>.</p>
+    </div>
+</div>
+
+<div id="tncModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal('tncModal')">&times;</span>
+        <h3>Terms & Conditions</h3>
+        <p>The formulas and algorithms used in this calculator are standard mathematical models. However, the figures generated are for <strong>informational and educational purposes only</strong>.</p>
+        <p>Actual bank offerings may vary slightly due to processing fees, rounding rules, tax inclusions, and specific lending policies. Please consult your financial institution before making any final commitments.</p>
+    </div>
+</div>
+
+<script>
+    // --- 1. Interactive Ocean Effect ---
+    document.addEventListener('mousemove', (e) => {
+        let x = (e.clientX / window.innerWidth) * 2 - 1;
+        let y = (e.clientY / window.innerHeight) * 2 - 1;
+        document.body.style.setProperty('--mx', x);
+        document.body.style.setProperty('--my', y);
+    });
+
+    // --- 2. Typewriter Effect ---
+    const titleString = "Interest Rate Converter & Calculator";
+    const titleElement = document.getElementById('typewriter-title');
+    let charIndex = 0;
+
+    function typeWriter() {
+        if (charIndex < titleString.length) {
+            let span = document.createElement('span');
+            span.innerHTML = titleString.charAt(charIndex) === ' ' ? '&nbsp;' : titleString.charAt(charIndex);
+            span.className = 'char';
+            titleElement.appendChild(span);
+            charIndex++;
+            setTimeout(typeWriter, 40); 
+        } else {
+            setTimeout(triggerSparkleSweep, 300); 
+        }
+    }
+
+    function triggerSparkleSweep() {
+        const characters = document.querySelectorAll('.char');
+        characters.forEach((char, index) => {
+            setTimeout(() => {
+                char.classList.add('sparkle');
+            }, index * 35); 
+        });
+    }
+
+    window.onload = function() {
+        typeWriter();
+        let today = new Date();
+        let yyyy = today.getFullYear();
+        let mm = String(today.getMonth() + 1).padStart(2, '0');
+        let dd = String(today.getDate()).padStart(2, '0');
+        document.getElementById('startDate').value = `${yyyy}-${mm}-${dd}`;
+    };
+
+    function openModal(id) { document.getElementById(id).style.display = "block"; }
+    function closeModal(id) { document.getElementById(id).style.display = "none"; }
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.style.display = "none";
+        }
+    }
+
+    // --- 5. Core Calculator Math & Logic ---
+    let yearlySchedule = [];
+    let monthlySchedule = [];
+    let disbursementData = {}; 
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    function PMT(rate, nper, pv) {
+        if (rate === 0) return pv / nper;
+        return (pv * rate * Math.pow(1 + rate, nper)) / (Math.pow(1 + rate, nper) - 1);
+    }
+
+    function calculateEffectiveReducingRate(pv, emi, nper) {
+        let low = 0.00001, high = 1.0, mid = 0;
+        for (let i = 0; i < 100; i++) {
+            mid = (low + high) / 2;
+            let calcEmi = PMT(mid, nper, pv);
+            if (calcEmi > emi) high = mid;
+            else low = mid;
+        }
+        return mid * 12 * 100;
+    }
+
+    function formatINR(num, hideDecimals = false) {
+        return "₹ " + num.toLocaleString('en-IN', {
+            minimumFractionDigits: hideDecimals ? 0 : 2,
+            maximumFractionDigits: hideDecimals ? 0 : 2
+        });
+    }
+
+    function calculateLoan() {
+        let p = parseFloat(document.getElementById('loanAmount').value);
+        let tenureVal = parseFloat(document.getElementById('loanTenure').value);
+        let isYears = document.getElementById('tenureYears').checked;
+        let rate = parseFloat(document.getElementById('interestRate').value);
+        let method = document.getElementById('calcMethod').value;
+        let startDateVal = document.getElementById('startDate').value;
+        
+        let hasGap = document.getElementById('hasGapInterest').checked;
+        let gapDays = parseFloat(document.getElementById('gapDays').value) || 0;
+        let calculatedGapInterest = 0;
+
+        if (isNaN(p) || isNaN(tenureVal) || isNaN(rate) || p <= 0 || tenureVal <= 0) {
+            alert("Please enter valid positive numbers in all fields.");
+            return;
+        }
+
+        let months = isYears ? tenureVal * 12 : tenureVal;
+        let years = months / 12;
+        let emi = 0, totalInterest = 0;
+        let balance = p;
+        
+        yearlySchedule = []; 
+        monthlySchedule = [];
+        
+        let currentDate = startDateVal ? new Date(startDateVal) : new Date();
+        if (isNaN(currentDate.getTime())) currentDate = new Date(); 
+        let currentYearObj = null;
+
+        let inputAnnual = rate;
+        let inputMonthly = rate / 12;
+        let convertedAnnual = 0;
+        let convertedMonthly = 0;
+
+        // Gap Interest Calculation
+        if (hasGap && gapDays > 0) {
+            calculatedGapInterest = (p * rate / 100 / 365) * gapDays;
+        }
+
+        // Advance Charges Calculation
+        let includeAdvance = document.getElementById('hasAdvanceCharges').checked;
+        let pfAmt = 0, docAmt = 0, stampAmt = 0, chrAmt = 0, hwAmt = 0, hwbAmt = 0;
+        let merchInsAmt = 0, pcfAmt = 0, nachAmt = 0, insAmt = 0;
+        let isForeclosureApplicable = false;
+
+        if (includeAdvance) {
+            let pfPct = parseFloat(document.getElementById('pfPercent').value) || 0;
+            pfAmt = p * (pfPct / 100) * 1.18; 
+
+            let docPct = parseFloat(document.getElementById('docPercent').value) || 0;
+            docAmt = p * (docPct / 100) * 1.18; 
+
+            let stampType = document.getElementById('stampDutyType').value;
+            let stampVal = parseFloat(document.getElementById('stampDutyVal').value) || 0;
+            stampAmt = stampType === 'percent' ? (p * (stampVal / 100)) : stampVal;
+
+            let pcfPct = parseFloat(document.getElementById('pcfPercent').value) || 0;
+            pcfAmt = p * (pcfPct / 100) * 1.18; 
+
+            chrAmt = parseFloat(document.getElementById('chrAmt').value) || 0;
+            hwAmt = parseFloat(document.getElementById('hwAmt').value) || 0;
+            hwbAmt = parseFloat(document.getElementById('hwBundleAmt').value) || 0;
+            merchInsAmt = parseFloat(document.getElementById('merchInsAmt').value) || 0;
+            nachAmt = parseFloat(document.getElementById('nachAmt').value) || 0;
+            insAmt = parseFloat(document.getElementById('insAmt').value) || 0;
+            
+            isForeclosureApplicable = document.getElementById('closerApplicable').value === 'yes';
+        }
+
+        // Total Charges Calculation (UI visually groups Gap Interest into Advance Charges)
+        let totalAdvanceCharges = pfAmt + docAmt + stampAmt + chrAmt + hwAmt + hwbAmt + merchInsAmt + pcfAmt + nachAmt + insAmt + calculatedGapInterest;
+        let netDisbursement = p - totalAdvanceCharges;
+
+        // Schedule Generation
+        if (method === 'flat') {
+            totalInterest = p * (rate / 100) * years;
+            emi = (p + totalInterest) / months;
+            
+            convertedAnnual = calculateEffectiveReducingRate(p, emi, months);
+            convertedMonthly = convertedAnnual / 12;
+
+            document.getElementById('comparison-title').innerText = "FLAT TO REDUCING CONVERSION";
+            document.getElementById('label-input').innerText = "Flat Interest";
+            document.getElementById('label-converted').innerText = "Reducing Balance";
+
+            let interestForMonth = totalInterest / months;
+            let principalForMonth = p / months;
+
+            for (let i = 1; i <= months; i++) {
+                let yearNum = currentDate.getFullYear();
+                if (!currentYearObj || currentYearObj.year !== yearNum) {
+                    if (currentYearObj) yearlySchedule.push(currentYearObj);
+                    currentYearObj = { year: yearNum, emi: 0, principal: 0, interest: 0, balance: 0 };
+                }
+
+                balance -= principalForMonth;
+                if (balance < 0.01) balance = 0;
+
+                currentYearObj.emi += emi;
+                currentYearObj.principal += principalForMonth;
+                currentYearObj.interest += interestForMonth;
+                currentYearObj.balance = balance;
+
+                let monthStr = monthNames[currentDate.getMonth()] + " " + currentDate.getFullYear();
+                monthlySchedule.push({ monthStr: monthStr, emi: emi, principal: principalForMonth, interest: interestForMonth, balance: balance });
+
+                currentDate.setMonth(currentDate.getMonth() + 1);
+            }
+
+        } else {
+            let monthlyRate = rate / 12 / 100;
+            let emiExact = PMT(monthlyRate, months, p);
+            emi = Math.round(emiExact); 
+            totalInterest = (emi * months) - p;
+            
+            convertedAnnual = (totalInterest / p) / years * 100;
+            convertedMonthly = convertedAnnual / 12;
+
+            document.getElementById('comparison-title').innerText = "REDUCING TO FLAT CONVERSION";
+            document.getElementById('label-input').innerText = "Reducing Balance";
+            document.getElementById('label-converted').innerText = "Flat Interest";
+
+            for (let i = 1; i <= months; i++) {
+                let yearNum = currentDate.getFullYear();
+                if (!currentYearObj || currentYearObj.year !== yearNum) {
+                    if (currentYearObj) yearlySchedule.push(currentYearObj);
+                    currentYearObj = { year: yearNum, emi: 0, principal: 0, interest: 0, balance: 0 };
+                }
+
+                let interestForMonth = balance * monthlyRate;
+                let principalForMonth = emiExact - interestForMonth;
+                balance -= principalForMonth;
+                if (balance < 0.01) balance = 0;
+
+                currentYearObj.emi += emiExact;
+                currentYearObj.principal += principalForMonth;
+                currentYearObj.interest += interestForMonth;
+                currentYearObj.balance = balance;
+
+                let monthStr = monthNames[currentDate.getMonth()] + " " + currentDate.getFullYear();
+                monthlySchedule.push({ monthStr: monthStr, emi: emiExact, principal: principalForMonth, interest: interestForMonth, balance: balance });
+
+                currentDate.setMonth(currentDate.getMonth() + 1);
+            }
+        }
+        
+        if (currentYearObj) yearlySchedule.push(currentYearObj);
+
+        // Store Data for Disbursement PDF
+        disbursementData = {
+            principal: p, tenureVal: tenureVal, isYears: isYears, method: method, rate: rate,
+            insAmt: insAmt, pfAmt: pfAmt, docAmt: docAmt, chrAmt: chrAmt, hwbAmt: hwbAmt, 
+            hwAmt: hwAmt, stampAmt: stampAmt, calculatedGapInterest: calculatedGapInterest,
+            merchInsAmt: merchInsAmt, isForeclosureApplicable: isForeclosureApplicable, pcfAmt: pcfAmt, nachAmt: nachAmt,
+            totalAdvanceCharges: totalAdvanceCharges, netDisbursement: netDisbursement, emi: Math.round(emi)
+        };
+
+        // Update UI Text values
+        document.getElementById('val-input-annual').innerText = inputAnnual.toFixed(2) + "% p.a.";
+        document.getElementById('val-input-monthly').innerText = inputMonthly.toFixed(2) + "% / month";
+        document.getElementById('val-converted-annual').innerText = convertedAnnual.toFixed(2) + "% p.a.";
+        document.getElementById('val-converted-monthly').innerText = convertedMonthly.toFixed(2) + "% / month";
+        document.getElementById('val-emi').innerText = formatINR(Math.round(emi), true);
+        
+        // Gap Interest UI Row visibility
+        if (calculatedGapInterest > 0) {
+            document.getElementById('gap-interest-row').style.display = 'flex';
+            document.getElementById('val-gap-interest').innerText = formatINR(calculatedGapInterest);
+        } else {
+            document.getElementById('gap-interest-row').style.display = 'none';
+        }
+
+        // Add GAP Interest to total interest for UI display
+        let displayTotalInterest = totalInterest + calculatedGapInterest;
+        document.getElementById('val-interest').innerText = formatINR(displayTotalInterest);
+
+        // Advance Charges UI block
+        if (includeAdvance || (hasGap && gapDays > 0)) {
+            document.getElementById('row-total-charges').style.display = 'flex';
+            document.getElementById('row-net-disbursement').style.display = 'flex';
+            document.getElementById('val-total-charges').innerText = formatINR(totalAdvanceCharges);
+            document.getElementById('val-net-disbursement').innerText = formatINR(netDisbursement);
+            
+            if (includeAdvance) {
+                document.getElementById('row-foreclosure').style.display = 'flex';
+                document.getElementById('val-foreclosure').innerText = isForeclosureApplicable ? 'As applicable' : 'Not Applicable';
+            } else {
+                document.getElementById('row-foreclosure').style.display = 'none';
+            }
+        } else {
+            document.getElementById('row-total-charges').style.display = 'none';
+            document.getElementById('row-net-disbursement').style.display = 'none';
+            document.getElementById('row-foreclosure').style.display = 'none';
+        }
+
+        renderTable();
+        document.getElementById('results').style.display = 'block';
+    }
+
+    function renderTable() {
+        let viewType = document.getElementById('scheduleView').value;
+        let tbody = document.getElementById('scheduleBody');
+        let theadTr = document.querySelector('#scheduleTable thead tr');
+        
+        tbody.innerHTML = ""; 
+
+        if (viewType === 'yearly') {
+            theadTr.innerHTML = `<th>Year</th><th>Total Payment (₹)</th><th>Principal Paid (₹)</th><th>Interest Paid (₹)</th><th>Closing Balance (₹)</th>`;
+            yearlySchedule.forEach(row => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${row.year}</strong></td>
+                    <td>${formatINR(row.emi).replace('₹ ', '')}</td>
+                    <td>${formatINR(row.principal).replace('₹ ', '')}</td>
+                    <td>${formatINR(row.interest).replace('₹ ', '')}</td>
+                    <td>${formatINR(row.balance).replace('₹ ', '')}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } else {
+            theadTr.innerHTML = `<th>Month</th><th>EMI (₹)</th><th>Principal Paid (₹)</th><th>Interest Paid (₹)</th><th>Closing Balance (₹)</th>`;
+            monthlySchedule.forEach(row => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${row.monthStr}</strong></td>
+                    <td>${formatINR(row.emi).replace('₹ ', '')}</td>
+                    <td>${formatINR(row.principal).replace('₹ ', '')}</td>
+                    <td>${formatINR(row.interest).replace('₹ ', '')}</td>
+                    <td>${formatINR(row.balance).replace('₹ ', '')}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    }
+
+    // --- PDF & Excel Exports ---
+    function exportExcel() {
+        let viewType = document.getElementById('scheduleView').value;
+        let dataArray = viewType === 'yearly' ? yearlySchedule : monthlySchedule;
+        let loanId = document.getElementById('loanIdInput').value.trim();
+        
+        if (dataArray.length === 0) return;
+        
+        let csvContent = "";
+        if (loanId) csvContent += `Loan ID: ${loanId}\n`;
+
+        if (viewType === 'yearly') {
+            csvContent += `Year-Wise Loan Schedule\nYear,Total Payment (INR),Principal Paid (INR),Interest Paid (INR),Closing Balance (INR)\n`;
+            dataArray.forEach(row => { csvContent += `${row.year},${row.emi.toFixed(2)},${row.principal.toFixed(2)},${row.interest.toFixed(2)},${row.balance.toFixed(2)}\n`; });
+        } else {
+            csvContent += `Month-Wise Loan Schedule\nMonth,EMI (INR),Principal Paid (INR),Interest Paid (INR),Closing Balance (INR)\n`;
+            dataArray.forEach(row => { csvContent += `${row.monthStr},${row.emi.toFixed(2)},${row.principal.toFixed(2)},${row.interest.toFixed(2)},${row.balance.toFixed(2)}\n`; });
+        }
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = loanId ? `Loan_Schedule_${loanId}.csv` : (viewType === 'yearly' ? "Yearly_Loan_Schedule.csv" : "Monthly_Loan_Schedule.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function exportPDF() {
+        let viewType = document.getElementById('scheduleView').value;
+        let dataArray = viewType === 'yearly' ? yearlySchedule : monthlySchedule;
+        if (dataArray.length === 0) return;
+        
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        let method = document.getElementById('calcMethod').options[document.getElementById('calcMethod').selectedIndex].text;
+        let principal = document.getElementById('loanAmount').value;
+        let tenure = document.getElementById('loanTenure').value + (document.getElementById('tenureYears').checked ? ' Years' : ' Months');
+        let roi = document.getElementById('interestRate').value;
+        let loanId = document.getElementById('loanIdInput').value.trim();
+
+        doc.setFontSize(16);
+        doc.text(viewType === 'yearly' ? "Year-Wise Amortization Schedule" : "Month-Wise Amortization Schedule", 14, 20);
+        
+        doc.setFontSize(11);
+        let startY = 30; 
+        if (loanId) { doc.text(`Loan ID: ${loanId}`, 14, startY); startY += 6; }
+        doc.text(`Principal: INR ${principal}`, 14, startY); startY += 6;
+        doc.text(`Tenure: ${tenure}`, 14, startY); startY += 6;
+        doc.text(`Interest Rate (ROI): ${roi}%`, 14, startY); startY += 6;
+        doc.text(`Calculation Type: ${method}`, 14, startY); startY += 8; 
+
+        const tableColumn = viewType === 'yearly' ? ["Year", "Payment (INR)", "Principal (INR)", "Interest (INR)", "Balance (INR)"] : ["Month", "EMI (INR)", "Principal (INR)", "Interest (INR)", "Balance (INR)"];
+        const tableRows = dataArray.map(row => [
+            viewType === 'yearly' ? row.year : row.monthStr,
+            formatINR(row.emi).replace('₹ ', ''), formatINR(row.principal).replace('₹ ', ''),
+            formatINR(row.interest).replace('₹ ', ''), formatINR(row.balance).replace('₹ ', '')
+        ]);
+
+        doc.autoTable({ head: [tableColumn], body: tableRows, startY: startY, theme: 'striped', headStyles: { fillColor: [76, 175, 80] } });
+        
+        // Footer Note
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        doc.text("This Calculator module was designed by Jagan", doc.internal.pageSize.width / 2, doc.internal.pageSize.height - 10, { align: 'center' });
+
+        doc.save(loanId ? `Loan_Schedule_${loanId}.pdf` : (viewType === 'yearly' ? "Yearly_Loan_Schedule.pdf" : "Monthly_Loan_Schedule.pdf"));
+    }
+
+    function exportDisbursementPDF() {
+        if (!disbursementData.principal) return alert("Please calculate a loan first.");
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        let loanId = document.getElementById('loanIdInput').value.trim();
+
+        doc.setFontSize(18);
+        doc.text("Loan Disbursement & Charges Estimate", 14, 20);
+        
+        doc.setFontSize(11);
+        let startY = 30;
+        if (loanId) { doc.text(`Loan ID: ${loanId}`, 14, startY); startY += 6; }
+        
+        // Remove Gap Interest from PDF Totals
+        let pdfTotalAdvance = disbursementData.totalAdvanceCharges - disbursementData.calculatedGapInterest;
+        let pdfNetDisbursement = disbursementData.principal - pdfTotalAdvance;
+
+        const tableColumn = ["Description", "Value"];
+        const tableRows = [
+            ["Principal Loan Amount", formatINR(disbursementData.principal).replace('₹ ', '')],
+            ["Tenure", `${disbursementData.tenureVal} ${disbursementData.isYears ? 'Years' : 'Months'}`],
+            ["Interest Rate Type", disbursementData.method === 'flat' ? 'Flat Interest Rate' : 'Reducing Balance Rate'],
+            ["Interest Rate (ROI)", `${disbursementData.rate}%`],
+            ["Monthly EMI Amount", formatINR(disbursementData.emi).replace('₹ ', '')],
+            ["", ""], // Spacer
+            ["Insurance Premium", formatINR(disbursementData.insAmt).replace('₹ ', '')],
+            ["Processing Fee (Inclusive of 18% GST)", formatINR(disbursementData.pfAmt).replace('₹ ', '')],
+            ["Documentation Charges (Inclusive of 18% GST)", formatINR(disbursementData.docAmt).replace('₹ ', '')],
+            ["Credit Health Report (CHR)", formatINR(disbursementData.chrAmt).replace('₹ ', '')],
+            ["Health & Wellness Bundle", formatINR(disbursementData.hwbAmt).replace('₹ ', '')],
+            ["Health & Wellness (H&W)", formatINR(disbursementData.hwAmt).replace('₹ ', '')],
+            ["Stamp Duty", formatINR(disbursementData.stampAmt).replace('₹ ', '')],
+            ["Merchant Insurance", formatINR(disbursementData.merchInsAmt).replace('₹ ', '')],
+            ["Foreclosure Charges", disbursementData.isForeclosureApplicable ? "As applicable" : "Not Applicable"],
+            ["NACH Charges", formatINR(disbursementData.nachAmt).replace('₹ ', '')],
+            ["Priority Credit Fee (Inclusive of 18% GST)", formatINR(disbursementData.pcfAmt).replace('₹ ', '')],
+            ["", ""], // Spacer
+            ["TOTAL CHARGES & DEDUCTIONS", formatINR(pdfTotalAdvance).replace('₹ ', '')],
+            ["NET DISBURSEMENT AMOUNT", formatINR(pdfNetDisbursement).replace('₹ ', '')]
+        ];
+
+        doc.autoTable({ 
+            head: [tableColumn], 
+            body: tableRows, 
+            startY: startY, 
+            theme: 'grid', 
+            headStyles: { fillColor: [33, 150, 243] },
+            willDrawCell: function(data) {
+                // Highlight Total & Net Rows
+                if (data.row.index === tableRows.length - 2) {
+                    data.cell.styles.fillColor = [255, 235, 238]; 
+                    data.cell.styles.textColor = [211, 47, 47];
+                    data.cell.styles.fontStyle = 'bold';
+                }
+                if (data.row.index === tableRows.length - 1) {
+                    data.cell.styles.fillColor = [232, 245, 233]; 
+                    data.cell.styles.textColor = [46, 125, 50];
+                    data.cell.styles.fontStyle = 'bold';
+                }
+            }
+        });
+
+        // Footer Note
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        doc.text("This Calculator module was designed by Jagan", doc.internal.pageSize.width / 2, doc.internal.pageSize.height - 10, { align: 'center' });
+
+        doc.save(loanId ? `Disbursement_Estimate_${loanId}.pdf` : "Disbursement_Estimate.pdf");
+    }
+</script>
+
+</body>
+</html>
